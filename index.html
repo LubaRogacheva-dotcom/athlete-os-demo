@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Athlete OS — Week Dashboard</title>
+<style>
+  :root { --bg:#fafaf7; --fg:#1d1d1b; --muted:#6b6b66; --card:#fff; --line:#e6e4dc; --easy:#3c9d6b; --hard:#d9542b; --long:#3b6fd4; --rest:#9a9a94; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#141413; --fg:#f1f0ea; --muted:#a3a29a; --card:#1e1e1c; --line:#33332f; } }
+  * { box-sizing:border-box }
+  body { margin:0; font:16px/1.5 system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--fg) }
+  main { max-width:760px; margin:0 auto; padding:32px 16px 48px }
+  h1 { font-size:28px; margin:0 0 4px }
+  .sub { color:var(--muted); margin:0 0 24px }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:24px }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px }
+  .stat b { display:block; font-size:24px }
+  .stat span { color:var(--muted); font-size:13px }
+  .day { display:grid; grid-template-columns:64px 1fr auto; gap:12px; align-items:center; background:var(--card); border:1px solid var(--line); border-left:5px solid var(--rest); border-radius:12px; padding:12px 14px; margin-bottom:10px }
+  .day.easy { border-left-color:var(--easy) } .day.hard { border-left-color:var(--hard) } .day.long { border-left-color:var(--long) }
+  .d { font-weight:700 } .t { font-weight:600 } .n { color:var(--muted); font-size:14px }
+  .km { font-variant-numeric:tabular-nums; font-weight:700 }
+  .bar { height:8px; background:var(--line); border-radius:4px; overflow:hidden; margin:6px 0 24px }
+  .bar i { display:block; height:100%; background:var(--easy) }
+  footer { color:var(--muted); font-size:13px; margin-top:28px }
+  a { color:inherit }
+</style>
+</head>
+<body>
+<main>
+  <h1>🏃 Athlete OS</h1>
+  <p class="sub">A personal AI coach: profile + live Strava data + rules it must not break. Sample week below (demo data).</p>
+
+  <div class="stats">
+    <div class="stat"><b id="vol">–</b><span>km planned this week</span></div>
+    <div class="stat"><b id="jump">–</b><span>vs last week (cap +10%)</span></div>
+    <div class="stat"><b id="runs">–</b><span>runs</span></div>
+    <div class="stat"><b id="split">–</b><span>easy share of runs</span></div>
+  </div>
+  <div class="bar" title="Weekly volume vs +10% cap"><i id="fill"></i></div>
+
+  <div id="week"></div>
+
+  <footer>
+    Built with Claude Code · rules: ≤10% weekly volume jump, flag injury risk, effort and heart rate over ego.
+    Source: <a href="https://github.com/LubaRogacheva-dotcom/athlete-os-demo">athlete-os-demo</a>. Personal data is kept in a private repo; this page uses sample numbers.
+  </footer>
+</main>
+<script>
+  const lastWeek = 30;
+  const week = [
+    { d:"Mon", t:"Strength: glutes + Pilates", n:"Zone 1–2 only", km:0, c:"rest" },
+    { d:"Tue", t:"Easy run", n:"Zone 2, conversational", km:6, c:"easy" },
+    { d:"Wed", t:"Strength: upper body + Pilates", n:"Light legs", km:0, c:"rest" },
+    { d:"Thu", t:"Intervals", n:"5 × 4 min at threshold, full warm-up", km:8, c:"hard" },
+    { d:"Fri", t:"Easy run", n:"Zone 2", km:6, c:"easy" },
+    { d:"Sat", t:"Strength: glutes + Pilates", n:"Rest from running", km:0, c:"rest" },
+    { d:"Sun", t:"Long run", n:"Easy effort, fuel every 40 min", km:12, c:"long" }
+  ];
+  const total = week.reduce((s,x)=>s+x.km,0);
+  const runs = week.filter(x=>x.km>0);
+  const easy = runs.filter(x=>x.c!=="hard").length;
+  const jump = Math.round((total/lastWeek-1)*100);
+  document.getElementById("vol").textContent = total;
+  document.getElementById("jump").textContent = (jump>=0?"+":"")+jump+"%";
+  document.getElementById("runs").textContent = runs.length;
+  document.getElementById("split").textContent = Math.round(easy/runs.length*100)+"%";
+  document.getElementById("fill").style.width = Math.min(100, total/(lastWeek*1.1)*100)+"%";
+  document.getElementById("week").innerHTML = week.map(x =>
+    `<div class="day ${x.c}"><div class="d">${x.d}</div><div><div class="t">${x.t}</div><div class="n">${x.n}</div></div><div class="km">${x.km?x.km+" km":"—"}</div></div>`
+  ).join("");
+</script>
+</body>
+</html>
